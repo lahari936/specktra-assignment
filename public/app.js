@@ -235,7 +235,7 @@ function renderFunnel() {
       title="${esc(b.title)} · expected ~${b.expectedMin}m · median ${dur(b.medianMin)}">
       <span class="fbar" aria-hidden="true"><i style="height:${h(ok)}"></i><i class="f-slow" style="height:${h(b.slow)}"></i><i class="f-stuck" style="height:${h(b.stuck)}"></i></span>
       <span class="fnum"><b>${b.active}</b>${b.stuck ? `<span class="st">${b.stuck} stuck</span>` : ''}</span>
-      <span class="flabel">${b.step} · ${esc(b.title)}</span>
+      <span class="flabel"><span class="fstep-n">Step ${b.step}</span>${esc(b.title)}</span>
     </button>`;
   }).join('');
 }
