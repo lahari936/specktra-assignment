@@ -79,7 +79,7 @@ server/workshop.js   data model, seed, drift, query, aggregation, spend, mutatio
 server/nlfilter.js   plain-language filter: Claude + keyword fallback
 server/api.js        JSON API, shared by local server and Vercel
 server/index.js      local server: API + static files (node:http, no framework)
-api/[...path].js     Vercel function entry, wraps server/api.js
+api/handler.js       Vercel function entry (vercel.json routes /api/* here), wraps server/api.js
 public/              index.html, app.css, app.js (no build step, no framework)
 test/                node:test suite for spend math, mutation, filters, fallback
 docs/                screenshots

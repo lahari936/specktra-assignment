@@ -1,4 +1,4 @@
-// JSON API shared by the local server (server/index.js) and the Vercel function (api/[...path].js).
+// JSON API shared by the local server (server/index.js) and the Vercel function (api/handler.js).
 import { createWorkshop, query, summarize, reprovision, tick } from './workshop.js';
 import { compile, aiStatus } from './nlfilter.js';
 
