@@ -1,0 +1,16 @@
+{
+  "name": "cloudlabs-workshop-ops",
+  "version": "1.0.0",
+  "description": "Instructor operations dashboard for a live 120-learner Azure workshop",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}

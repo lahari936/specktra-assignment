@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workshop Ops · CloudLabs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <a class="skip" href="#grid">Skip to environments</a>
+
+  <header class="top">
+    <div class="brand">CloudLabs <span>/</span> Workshop ops</div>
+    <h1 id="session-title">Loading session…</h1>
+    <div class="clock" id="clock" aria-label="Session time"></div>
+    <div class="live" id="live" role="status" aria-live="polite">
+      <span class="live-dot" aria-hidden="true"></span><span id="live-text">Connecting…</span>
+    </div>
+    <button class="btn ghost" id="pause" aria-pressed="false" title="Pause live updates (P)">Pause</button>
+    <button class="btn ghost icon" id="help-btn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+  </header>
+
+  <div class="banner" id="banner" role="alert" hidden></div>
+
+  <section class="ledger" id="ledger" aria-label="Session summary" aria-busy="true"></section>
+
+  <section class="overview" aria-label="Where learners are">
+    <div class="statebar-wrap">
+      <h2 class="eyebrow">Environments by state</h2>
+      <div class="statebar" id="statebar" role="group" aria-label="Filter by state"></div>
+    </div>
+    <div class="funnel-wrap">
+      <h2 class="eyebrow">Learners per step <span class="muted">· bar = currently on step · <span class="key-stuck">stuck</span> / <span class="key-slow">slow</span></span></h2>
+      <div class="funnel" id="funnel" role="group" aria-label="Filter by step"></div>
+    </div>
+  </section>
+
+  <div class="workspace">
+    <main class="main">
+      <form class="ask" id="ask-form" role="search" aria-label="Ask in plain language">
+        <label for="ask" class="ask-label">Ask</label>
+        <input id="ask" name="ask" autocomplete="off" spellcheck="false"
+               placeholder="e.g. everyone stuck on step 4 over 20 min · failed with quota errors · top spenders in westeurope">
+        <button class="btn" type="submit" id="ask-go">Filter</button>
+        <span class="ask-status" id="ask-status" aria-live="polite"></span>
+      </form>
+
+      <div class="toolbar" role="toolbar" aria-label="Filters">
+        <label class="field"><span class="sr-only">Search learner or lab id</span>
+          <input id="q" type="search" placeholder="Learner or lab-id  /" autocomplete="off">
+        </label>
+        <label class="field"><span class="field-label">Pace</span>
+          <select id="pace">
+            <option value="">Any</option>
+            <option value="slow,stuck">Slow + stuck</option>
+            <option value="stuck">Stuck only</option>
+            <option value="ok">On pace</option>
+          </select>
+        </label>
+        <label class="field"><span class="field-label">Step</span>
+          <select id="step"><option value="">Any</option></select>
+        </label>
+        <label class="field"><span class="field-label">Region</span>
+          <select id="region"><option value="">Any</option></select>
+        </label>
+        <div class="toolbar-spacer"></div>
+        <button class="btn danger-outline" id="bulk" type="button" hidden></button>
+      </div>
+
+      <div class="chips" id="chips" aria-live="polite"></div>
+
+      <div class="grid-wrap">
+        <table class="grid" id="grid" aria-describedby="grid-caption" tabindex="-1">
+          <caption id="grid-caption" class="sr-only">Lab environments. Use J and K or arrow keys to move between rows, Enter for details, R to reprovision a failed environment.</caption>
+          <colgroup>
+            <col class="c-state"><col class="c-learner"><col class="c-id"><col class="c-progress">
+            <col class="c-step"><col class="c-time"><col class="c-spend"><col class="c-action">
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col"><button class="sort" data-sort="state">State</button></th>
+              <th scope="col"><button class="sort" data-sort="learner">Learner</button></th>
+              <th scope="col"><button class="sort" data-sort="id">Lab</button></th>
+              <th scope="col"><button class="sort" data-sort="progress">Progress</button></th>
+              <th scope="col">Current step / issue</th>
+              <th scope="col" class="num"><button class="sort" data-sort="minutesOnStep" title="Time on current step, or time in state for failed / provisioning / ready">Time here</button></th>
+              <th scope="col" class="num"><button class="sort" data-sort="spend">Spend</button></th>
+              <th scope="col"><button class="sort" data-sort="attention" title="Failed, then stuck, then slow">Triage</button></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="state-panel" id="state-panel" hidden></div>
+      </div>
+      <p class="foot" id="foot"></p>
+    </main>
+
+    <aside class="side" aria-label="Details and activity">
+      <section class="detail" id="detail" aria-live="polite">
+        <h2 class="eyebrow">Selected</h2>
+        <p class="muted small">Select a row (click or Enter) to see its step timeline.</p>
+      </section>
+      <section class="feed">
+        <h2 class="eyebrow">Activity <span class="muted" id="feed-count"></span></h2>
+        <ol class="feed-list" id="feed" aria-live="off"></ol>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="help" aria-labelledby="help-title">
+    <h2 id="help-title">Keyboard</h2>
+    <dl class="keys">
+      <dt><kbd>J</kbd> / <kbd>K</kbd> or <kbd>↓</kbd> / <kbd>↑</kbd></dt><dd>Move between rows</dd>
+      <dt><kbd>Enter</kbd></dt><dd>Show details for row</dd>
+      <dt><kbd>R</kbd></dt><dd>Reprovision focused failed environment</dd>
+      <dt><kbd>/</kbd></dt><dd>Search learner or lab id</dd>
+      <dt><kbd>A</kbd></dt><dd>Ask in plain language</dd>
+      <dt><kbd>F</kbd></dt><dd>Show failed only (toggle)</dd>
+      <dt><kbd>S</kbd></dt><dd>Show slow + stuck (toggle)</dd>
+      <dt><kbd>P</kbd></dt><dd>Pause / resume live updates</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Clear filters / close</dd>
+    </dl>
+    <form method="dialog"><button class="btn">Close</button></form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
