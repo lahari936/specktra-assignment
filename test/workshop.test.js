@@ -77,3 +77,13 @@ test('drift moves learners forward over time', () => {
   assert.ok(steps() > before);
   assert.ok(ws.events.length > 0);
 });
+
+test('state survives a JSON round trip (what Redis stores) and keeps working', () => {
+  const ws = fresh();
+  const copy = JSON.parse(JSON.stringify(ws));
+  assert.deepEqual(summarize(copy, NOW), summarize(ws, NOW));
+  const id = query(copy, { states: 'failed' }, NOW).rows[0].id;
+  assert.equal(reprovision(copy, [id], NOW)[0].ok, true);
+  tick(copy, 2000, NOW + 2000);
+  assert.equal(query(copy, { q: id }, NOW).rows[0].attempts > 1, true);
+});

@@ -2,6 +2,8 @@
 
 One screen for an instructor running a live Azure workshop with 120 learners: which lab environments are healthy, who is stuck, what is failing, and what the session is costing.
 
+**Live:** https://specktra-assignment.vercel.app
+
 **Design intent:** a control-room view of the classroom. "The room" maps all 120 learners as seats in fixed lab-number order, so trouble shows up as a place ("back-left corner is red"), and the table below opens sorted by what needs a human. Colour is only spent on status: anything coloured is something to act on.
 
 ![Dense view, 120 environments, triage order](docs/dense.png)
@@ -20,12 +22,13 @@ npm start
 
 Open http://localhost:4173.
 
-Live demo: https://specktra-assignment.vercel.app (the API runs as a Vercel function from `api/`; each warm instance keeps its own in-memory state, so a cold start re-seeds the workshop). The data is seeded (120 environments, fixed seed) and the server drifts it every 2 seconds, so learners advance, environments fail and finish while you watch.
+The data is seeded (120 environments, fixed seed) and the server drifts it every 2 seconds, so learners advance, environments fail and finish while you watch.
 
 Optional settings:
 
 | Variable | Effect |
 |---|---|
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Shared state in Redis (set automatically when an Upstash Redis store is connected in Vercel). Without them, state is kept in memory. `UPSTASH_REDIS_REST_URL` / `_TOKEN` also work. |
 | `ANTHROPIC_API_KEY` | Turns on the Claude-backed plain-language filter. Without it the keyword parser handles the same box. |
 | `ANTHROPIC_MODEL` | Model used for the filter (default `claude-opus-5-5`). |
 | `AI_DISABLED=1` | Forces the keyword-parser fallback even when a key is set. |
@@ -72,12 +75,24 @@ Filters live in the URL hash, so a view such as `#states=failed` can be bookmark
 | POST | `/api/environments/reprovision` | `{ "ids": [...] }`. Only `failed` environments move to `provisioning`; anything else is reported per id. 409 if none qualified. |
 | POST | `/api/nl-filter` | `{ "text": "..." }` returns `{ filter, source: "model" or "rules", explanation, degradedReason? }`. |
 
+## Deploying to Vercel
+
+The repo deploys as-is: `public/` is served as static files and `vercel.json` routes every `/api/*` request to `api/handler.js`.
+
+For state that every serverless instance shares (so a reprovision shows up for everyone):
+
+1. In the Vercel project, open **Storage → Create → Upstash for Redis** (the replacement for Vercel KV) and connect it to this project.
+2. Redeploy. The connection adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`, and `GET /api/summary` then reports `"store": "redis"`.
+
+Without a store the deployment still works, but each instance keeps its own copy in memory.
+
 ## Layout
 
 ```
 server/workshop.js   data model, seed, drift, query, aggregation, spend, mutation
 server/nlfilter.js   plain-language filter: Claude + keyword fallback
 server/api.js        JSON API, shared by local server and Vercel
+server/store.js      shared state: Redis when configured, memory otherwise
 server/index.js      local server: API + static files (node:http, no framework)
 api/handler.js       Vercel function entry (vercel.json routes /api/* here), wraps server/api.js
 public/              index.html, app.css, app.js (no build step, no framework)

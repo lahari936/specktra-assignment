@@ -41,9 +41,13 @@ The feature is a plain-language filter. The model only translates the question i
 - **Motion only for change.** A row flashes once when its state or step changes, and a summary count flashes when it changes. Spend ticks every poll, so it does not flash. `prefers-reduced-motion` turns all of it off.
 - **Failure states are honest.** Before the first load: skeleton rows. Error before any data: a full error panel with retry. Error after data: the data stays on screen with a banner saying how old it is, and polling backs off from 3 s up to 30 s.
 
+## Shared state
+
+Locally the workshop lives in memory. On Vercel it is one JSON document in Redis (Upstash, the successor to Vercel KV), so every serverless instance sees the same seats, failures and reprovisions. Drift is applied lazily: each request advances the stored clock in 2-second steps, so no timer or long-running process is needed. Writers take a short `SET NX` lock. Reads save drift only when the lock is free, and an instructor action waits for the lock, so drift can never overwrite a reprovision.
+
 ## What's next
 
-- Persist to SQLite or Postgres and push changes over SSE instead of polling every 3 s.
+- Store environments as rows (Postgres) instead of one Redis document, and push changes over SSE instead of polling every 3 s.
 - A real Azure adapter (Resource Graph for state, Cost Management for spend) behind the same `workshop.js` interface.
 - An undo window and an audit trail per instructor for bulk reprovision.
 - Per-step stuck thresholds learned from earlier cohorts instead of fixed 1.5× and 2× multipliers.
