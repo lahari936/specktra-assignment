@@ -6,7 +6,7 @@
   <title>Workshop Ops · CloudLabs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@500;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -28,12 +28,19 @@
   <section class="ledger" id="ledger" aria-label="Session summary" aria-busy="true"></section>
 
   <section class="overview" aria-label="Where learners are">
-    <div class="statebar-wrap">
-      <h2 class="eyebrow">Environments by state</h2>
-      <div class="statebar" id="statebar" role="group" aria-label="Filter by state"></div>
+    <div class="room-wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">The room</h2>
+        <p class="sec-note">One seat per lab, in lab-number order. Seats never move. Number = current step.</p>
+      </div>
+      <div class="room" id="room" role="group" aria-label="Seat map, one button per learner"></div>
+      <div class="statelegend" id="statelegend" role="group" aria-label="Filter by state"></div>
     </div>
     <div class="funnel-wrap">
-      <h2 class="eyebrow">Learners per step <span class="muted">· bar = currently on step · <span class="key-stuck">stuck</span> / <span class="key-slow">slow</span></span></h2>
+      <div class="sec-head">
+        <h2 class="sec-title">Where they are</h2>
+        <p class="sec-note">Learners on each step now · <span class="key-stuck">stuck</span> · <span class="key-slow">slow</span></p>
+      </div>
       <div class="funnel" id="funnel" role="group" aria-label="Filter by step"></div>
     </div>
   </section>

@@ -2,7 +2,7 @@
 
 One screen for an instructor running a live Azure workshop with 120 learners: which lab environments are healthy, who is stuck, what is failing, and what the session is costing.
 
-**Design intent:** a triage console, not a showcase. The table opens sorted by what needs a human (failed, then stuck, then slow). Normal rows stay neutral grey so that any colour on screen is something to act on.
+**Design intent:** a control-room view of the classroom. "The room" maps all 120 learners as seats in fixed lab-number order, so trouble shows up as a place ("back-left corner is red"), and the table below opens sorted by what needs a human. Colour is only spent on status: anything coloured is something to act on.
 
 ![Dense view, 120 environments, triage order](docs/dense.png)
 
@@ -51,7 +51,7 @@ npm test
 ## What is on the screen
 
 1. **Summary ledger.** Active, failed (with top error codes), need help (stuck / slow), spend (now, burn per hour, projected at session end, idle burn), and average completion. Failed and Need help are buttons that filter the table.
-2. **State bar and step funnel.** Where the cohort is, and where it is piling up. Each step bar is split into on-pace / slow / stuck. Clicking a state or step filters the table.
+2. **The room and the step funnel.** Every learner as a seat in lab-number order: the number is their current step, a filled amber seat is stuck, a dashed amber border is slow, red with × is failed, a dashed blue outline is provisioning, a teal ring is ready, ✓ is finished. Seats never move between polls. Filters dim the seats that don't match, clicking a seat opens that learner, and arrow keys move across the grid. The funnel next to it shows how many learners are on each step, split into on-pace / slow / stuck. Clicking a state or step filters the table.
 3. **Ask box.** Plain-language filter, for example "everyone stuck on step 4 over 20 min". It compiles to the same filter chips the manual controls produce, and says whether Claude or the keyword fallback compiled it.
 4. **Table.** One row per environment, shape and text for status, 8-pip step progress, time on the current step against the expected time, spend, and a Reprovision action on failed rows. Rows flash briefly when their state or step changes.
 5. **Side panel.** Step timeline for the selected learner (actual against expected per step) and a live activity feed.

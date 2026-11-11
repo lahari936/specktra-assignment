@@ -377,6 +377,8 @@ export function summarize(ws, now = Date.now()) {
       medianMinutesToComplete: median(completionMins),
     },
     funnel,
+    // Compact per-seat status in fixed lab-number order for the room map.
+    seats: rows.map((r) => ({ id: r.id, learner: r.learner, state: r.state, pace: r.pace, step: r.step, done: r.stepsDone, completed: r.completed })),
     version: ws.version,
   };
 }

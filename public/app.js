@@ -21,7 +21,7 @@ const ICON = {
   provisioning: '<circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 1.8"/>',
   ready: '<circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/>',
   in_use: '<circle cx="6" cy="6" r="5" fill="currentColor"/>',
-  failed: '<rect x="0.5" y="0.5" width="11" height="11" rx="1.5" fill="currentColor"/><path d="M3.5 3.5l5 5M8.5 3.5l-5 5" stroke="var(--surface)" stroke-width="1.6"/>',
+  failed: '<rect x="0.5" y="0.5" width="11" height="11" rx="1.5" fill="currentColor"/><path d="M3.5 3.5l5 5M8.5 3.5l-5 5" stroke="var(--paper)" stroke-width="1.6"/>',
   deprovisioned: '<path d="M1.5 6h9" stroke="currentColor" stroke-width="1.8"/>',
 };
 const statusHtml = (s) => `<span class="st" data-s="${s}"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">${ICON[s]}</svg>${STATE_LABEL[s]}</span>`;
@@ -122,9 +122,9 @@ function schedule() {
 function renderAll() {
   renderHeader();
   renderLedger();
-  renderStateBar();
-  renderFunnel();
   renderRows();
+  renderRoom();
+  renderFunnel();
   renderDetail();
   renderLive();
 }
@@ -186,19 +186,49 @@ function renderLedger() {
   $('#ledger').setAttribute('aria-busy', 'false');
 }
 
-function renderStateBar() {
-  const s = app.summary, sel = app.filter.states ?? [];
-  $('#statebar').innerHTML = STATES.map((st) => `<button class="seg" data-s="${st}" style="flex-grow:${s.byState[st]}" aria-pressed="${sel.includes(st)}" aria-label="${STATE_LABEL[st]}: ${s.byState[st]}" tabindex="-1"></button>`).join('');
-  let legend = $('#statelegend');
-  if (!legend) { legend = document.createElement('div'); legend.id = 'statelegend'; legend.className = 'statelegend'; $('#statebar').after(legend); }
-  legend.innerHTML = STATES.map((st) => `<button data-state="${st}" aria-pressed="${sel.includes(st)}">${statusHtml(st)}<b>${s.byState[st]}</b></button>`).join('');
+const SEAT_COLS = 15;
+function seatGlyph(x) {
+  if (x.state === 'failed') return '×';
+  if (x.state === 'deprovisioned') return x.completed ? '✓' : '–';
+  if (x.state === 'provisioning') return '';
+  if (x.completed) return '✓';
+  return String(x.step);
+}
+function renderRoom() {
+  const s = app.summary, room = $('#room');
+  const hasFilter = Object.keys(app.filter).some((k) => k !== 'sort' && k !== 'dir');
+  const shown = new Set(app.rows.map((r) => r.id));
+  if (room.children.length !== s.seats.length) {
+    room.innerHTML = s.seats.map((x, i) => `<button class="seat" data-seat="${x.id}" tabindex="${i === 0 ? 0 : -1}"><span class="g"></span><i></i></button>`).join('');
+    app.seatPrev = new Map();
+  }
+  s.seats.forEach((x, i) => {
+    const el = room.children[i];
+    const sig = `${x.state}|${x.step}|${x.completed}|${x.pace}`;
+    if (el._sig !== sig) {
+      el.dataset.s = x.state;
+      el.dataset.pace = x.state === 'in_use' && !x.completed ? x.pace : '';
+      el.querySelector('.g').textContent = seatGlyph(x);
+      el.querySelector('i').style.width = `${(x.done / 8) * 100}%`;
+      const pace = el.dataset.pace && el.dataset.pace !== 'ok' ? `, ${x.pace}` : '';
+      const where = x.state === 'in_use' ? (x.completed ? 'finished' : `step ${x.step}${pace}`) : STATE_LABEL[x.state].toLowerCase();
+      el.setAttribute('aria-label', `${x.id}, ${x.learner}: ${where}`);
+      el.title = `${x.id} · ${x.learner} · ${where}`;
+      if (el._sig) { el.classList.remove('changed'); void el.offsetWidth; el.classList.add('changed'); }
+      el._sig = sig;
+    }
+    el.classList.toggle('out', hasFilter && !shown.has(x.id));
+    el.setAttribute('aria-pressed', String(app.selected === x.id));
+  });
+  const sel = app.filter.states ?? [];
+  $('#statelegend').innerHTML = STATES.map((st) => `<button data-state="${st}" aria-pressed="${sel.includes(st)}">${statusHtml(st)}<b>${s.byState[st]}</b></button>`).join('');
 }
 
 function renderFunnel() {
   const f = app.summary.funnel, max = Math.max(1, ...f.map((b) => b.active));
   const sel = app.filter.steps ?? [];
   $('#funnel').innerHTML = f.map((b) => {
-    const h = (n) => `${(n / max) * 52}px`;
+    const h = (n) => `${(n / max) * 100}%`;
     const ok = b.active - b.slow - b.stuck;
     return `<button class="fstep" data-step="${b.step}" aria-pressed="${sel.includes(b.step)}"
       aria-label="Step ${b.step}, ${esc(b.title)}: ${b.active} learners, ${b.stuck} stuck, ${b.slow} slow. Median ${dur(b.medianMin)} on step, expected ${b.expectedMin} minutes"
@@ -450,8 +480,11 @@ document.addEventListener('click', (e) => {
   if (!t) return;
   if (t.dataset.reprovision) return doReprovision([t.dataset.reprovision], t);
   if (t.dataset.unset) { const f = { ...app.filter }; delete f[t.dataset.unset]; return setFilter(f); }
-  if (t.dataset.state || (t.classList.contains('seg') && t.dataset.s)) {
-    return setFilter({ ...app.filter, states: toggleIn(app.filter.states, t.dataset.state ?? t.dataset.s) });
+  if (t.dataset.state) return setFilter({ ...app.filter, states: toggleIn(app.filter.states, t.dataset.state) });
+  if (t.dataset.seat) {
+    selectRow(t.dataset.seat, true);
+    app.rowEls.get(t.dataset.seat)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return;
   }
   if (t.dataset.step) {
     const n = Number(t.dataset.step);
@@ -470,8 +503,11 @@ document.addEventListener('click', (e) => {
   if (t.tagName === 'TR' && t.dataset.id) selectRow(t.dataset.id);
 });
 
-function selectRow(id) {
-  app.selected = app.selected === id ? null : id;
+function selectRow(id, force = false) {
+  app.selected = app.selected === id && !force ? null : id;
+  app.selectedRow = null;
+  for (const el of $('#room').children) el.setAttribute('aria-pressed', String(el.dataset.seat === app.selected));
+  if (app.selected && !app.rows.some((r) => r.id === id)) api(`/api/environments?q=${id}`).then((r) => { app.selectedRow = r.rows[0]; renderDetail(); }).catch(() => {});
   app.focusId = id;
   for (const [rid, tr] of app.rowEls) tr.setAttribute('aria-selected', String(rid === app.selected));
   renderDetail();
@@ -546,6 +582,28 @@ document.addEventListener('keydown', (e) => {
     case 'p': togglePause(); break;
     case '?': $('#help').showModal(); break;
   }
+});
+
+$('#room').addEventListener('keydown', (e) => {
+  const seats = [...$('#room').children];
+  const i = seats.indexOf(document.activeElement);
+  const d = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: SEAT_COLS, ArrowUp: -SEAT_COLS, Home: -i, End: seats.length - 1 - i }[e.key];
+  if (d === undefined || i < 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const next = seats[Math.max(0, Math.min(seats.length - 1, i + d))];
+  seats[i].tabIndex = -1;
+  next.tabIndex = 0;
+  next.focus();
+});
+// Hovering a seat points at its row and vice versa.
+document.addEventListener('mouseover', (e) => {
+  const id = e.target.closest?.('[data-seat], #rows tr')?.dataset?.seat ?? e.target.closest?.('#rows tr')?.dataset.id;
+  if (id === app.hoverId) return;
+  app.rowEls.get(app.hoverId)?.classList.remove('hl');
+  $(`[data-seat="${app.hoverId}"]`)?.classList.remove('hl');
+  app.hoverId = id;
+  if (id) { app.rowEls.get(id)?.classList.add('hl'); $(`[data-seat="${id}"]`)?.classList.add('hl'); }
 });
 
 window.addEventListener('hashchange', () => { app.filter = readHash(); syncControls(); renderChips(); refresh(); });

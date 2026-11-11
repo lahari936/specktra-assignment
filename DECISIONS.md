@@ -33,6 +33,8 @@ The feature is a plain-language filter. The model only translates the question i
 
 ## Interface choices
 
+- **The room as the signature.** 120 seats in a 15 × 8 grid in fixed lab-number order. A sorted list reshuffles every poll; a seat map doesn't, so the instructor learns positions and spots new trouble by place. Each seat shows state by fill and border style plus a glyph (step number, ×, ✓), never by colour alone.
+- **Type and palette.** Cool fog paper and navy ink, nothing warm or neon. Big Shoulders Display (a wallboard face) only for the title, section titles, headline numbers and seat glyphs. Atkinson Hyperlegible for everything else because it was designed for fast, low-error reading. Spline Sans Mono for lab ids and error codes.
 - **No stat-card grid.** The summary is one ledger row with hairline dividers, and the two numbers that need action (failed, need help) are buttons that filter the table.
 - **Colour means status.** In-use and on-pace rows are neutral. Red is failed, amber is stuck or slow, blue is provisioning, green is ready. Every status also has a shape (filled square with a cross, dashed ring, ring, dot, dash) and a text label, and stuck or slow rows also carry a `STUCK`/`SLOW` tag.
 - **Numbers align.** Tabular figures throughout, right-aligned time and money columns, and time shown against the expected time (`43m /12m`).

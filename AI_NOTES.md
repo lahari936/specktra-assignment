@@ -11,7 +11,8 @@
 
 ## Where the generic output was rejected or changed
 
-- **Layout.** The default suggestion for "dashboard" is a row of KPI cards plus a chart. Replaced with a single ledger row, a state bar and a per-step funnel, because the instructor's question is "where are people piling up", not "what is the trend".
+- **Layout.** The default suggestion for "dashboard" is a row of KPI cards plus a chart. Replaced with a single ledger row, a seat map of the room and a per-step funnel, because the instructor's question is "where are people piling up", not "what is the trend".
+- **Visual identity.** The first pass used a warm grey background with IBM Plex, which read as a generic default. It was replaced with a cool fog/navy palette, a wallboard display face used only for numbers and titles, and the seat-map "room" view as the one memorable element.
 - **Status colour.** An early pass coloured every state, including in-use. Changed so normal rows are neutral grey and colour only marks something to act on.
 - **A striped (gradient) pattern on the provisioning segment** was removed. The brief rules out gradients, and the legend already carries the label.
 - **A pulsing "live" dot** that animated on every poll was removed. Motion is kept for changes only.
