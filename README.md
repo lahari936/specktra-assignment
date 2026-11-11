@@ -18,7 +18,9 @@ npm install
 npm start
 ```
 
-Open http://localhost:4173. The data is seeded (120 environments, fixed seed) and the server drifts it every 2 seconds, so learners advance, environments fail and finish while you watch.
+Open http://localhost:4173.
+
+Live demo: https://specktra-assignment.vercel.app (the API runs as a Vercel function from `api/`; each warm instance keeps its own in-memory state, so a cold start re-seeds the workshop). The data is seeded (120 environments, fixed seed) and the server drifts it every 2 seconds, so learners advance, environments fail and finish while you watch.
 
 Optional settings:
 
@@ -75,7 +77,9 @@ Filters live in the URL hash, so a view such as `#states=failed` can be bookmark
 ```
 server/workshop.js   data model, seed, drift, query, aggregation, spend, mutation
 server/nlfilter.js   plain-language filter: Claude + keyword fallback
-server/index.js      HTTP API and static files (node:http, no framework)
+server/api.js        JSON API, shared by local server and Vercel
+server/index.js      local server: API + static files (node:http, no framework)
+api/[...path].js     Vercel function entry, wraps server/api.js
 public/              index.html, app.css, app.js (no build step, no framework)
 test/                node:test suite for spend math, mutation, filters, fallback
 docs/                screenshots

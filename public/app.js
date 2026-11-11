@@ -349,7 +349,10 @@ function renderError(err) {
     const panel = $('#state-panel');
     panel.hidden = false;
     panel.className = 'state-panel error';
-    panel.innerHTML = `<h3>Can't reach the workshop API</h3><p>${esc(err.message)}${err.status ? ` (HTTP ${err.status})` : ''}. Retrying automatically with backoff.</p><button class="btn" data-act="retry">Retry now</button>`;
+    const detail = err.status === 404
+      ? 'The page loaded but the API is not running at /api. Start the server with <code>npm start</code>, or deploy the <code>api/</code> folder alongside the page.'
+      : `${esc(err.message)}${err.status && !err.message.includes(String(err.status)) ? ` (HTTP ${err.status})` : ''}. Retrying automatically.`;
+    panel.innerHTML = `<h3>Can't reach the workshop API</h3><p>${detail}</p><button class="btn" data-act="retry">Retry now</button>`;
     $('#ledger').innerHTML = '<div class="metric"><span class="m-label">Summary unavailable</span><span class="sub">Waiting for the API</span></div>';
     return;
   }

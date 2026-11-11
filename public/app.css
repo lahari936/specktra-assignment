@@ -343,3 +343,5 @@ kbd { padding: 0 6px; font-family: var(--mono); font-size: 11.5px; background: v
   .seat { width: 42px; height: 42px; }
   .seat .g { font-size: 20px; }
 }
+.grid thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.state-panel code { font-family: var(--mono); font-size: 12px; background: var(--fog); padding: 1px 5px; border-radius: 3px; }
